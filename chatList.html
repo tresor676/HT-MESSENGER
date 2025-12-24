@@ -1,0 +1,65 @@
+<div>
+  <h2>Liste des conversations</h2>
+  <div id="chatListContainer"></div>
+</div>
+
+<script>
+const chatListContainer = document.getElementById("chatListContainer");
+const currentUser = firebase.auth().currentUser.uid;
+
+// Chats privés
+firebase.firestore().collection("users").doc(currentUser).get()
+  .then(doc => {
+    const friends = doc.data().friends || [];
+    chatListContainer.innerHTML = '<h3>Amis</h3>';
+    if(friends.length === 0){
+      chatListContainer.innerHTML += '<p>Aucun chat pour le moment.</p>';
+    } else {
+      friends.forEach(friendId => {
+        firebase.firestore().collection("users").doc(friendId).get()
+          .then(fDoc => {
+            const friend = fDoc.data();
+            const div = document.createElement('div');
+            div.style.border = '1px solid #ccc';
+            div.style.margin = '5px';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.innerHTML = `
+              <strong>${friend.username}</strong>
+              <button onclick="openChat('${friendId}')">Ouvrir chat</button>
+            `;
+            chatListContainer.appendChild(div);
+          });
+      });
+    }
+  });
+
+// Chats de groupes
+firebase.firestore().collection("groups").where("members", "array-contains", currentUser).get()
+  .then(snapshot => {
+    chatListContainer.innerHTML += '<h3>Groupes</h3>';
+    snapshot.forEach(doc => {
+      const group = doc.data();
+      const div = document.createElement('div');
+      div.style.border = '1px solid #ccc';
+      div.style.margin = '5px';
+      div.style.padding = '10px';
+      div.style.borderRadius = '5px';
+      div.innerHTML = `
+        <strong>${group.name}</strong>
+        <button onclick="openGroupChat('${doc.id}')">Ouvrir chat</button>
+      `;
+      chatListContainer.appendChild(div);
+    });
+  });
+
+function openChat(uid){
+  alert("Ouvrir chat privé avec : " + uid);
+  // Ici tu peux rediriger vers chat.html avec paramètre uid
+}
+
+function openGroupChat(groupId){
+  alert("Ouvrir chat groupe : " + groupId);
+  // Ici tu peux rediriger vers chat.html avec paramètre groupId
+}
+</script>
