@@ -5,61 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login</title>
 <style>
-  body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin:0;
-    font-family: Arial, sans-serif;
-    background: #f0f0f0;
-  }
-  .login-container {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    width: 90%;
-    max-width: 400px;
-  }
-  h2 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-  }
-  button {
-    width: 100%;
-    padding: 10px;
-    background: #4a90e2;
-    border: none;
-    color: white;
-    font-size: 16px;
-    border-radius: 5px;
-  }
-  .link {
-    text-align: center;
-    margin-top: 10px;
-  }
+  body { font-family: Arial; display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; background:#f0f0f0; }
+  input { margin:5px; padding:10px; width:80%; border-radius:5px; border:1px solid #ccc; }
+  button { padding:10px 20px; margin-top:10px; border-radius:5px; cursor:pointer; }
 </style>
 </head>
 <body>
-<div class="login-container">
-  <h2>Connexion</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Mot de passe">
-  <button id="loginBtn">Se connecter</button>
-  <div class="link">
-    <a href="register.html">Pas encore de compte ? S'inscrire</a>
-  </div>
-</div>
+<h2>Connexion</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Mot de passe">
+<button id="loginBtn">Se connecter</button>
+<p>Pas encore inscrit ? <a href="register.html">Inscription</a></p>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/login.js"></script>
+<script type="module">
+import { auth } from "./firebase.js";
+import { signInWithEmailAndPassword } from "firebase/auth";
+
+const loginBtn = document.getElementById("loginBtn");
+
+loginBtn.addEventListener("click", () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      window.location.href = "home.html";
+    })
+    .catch(error => alert("Erreur : " + error.message));
+});
+</script>
 </body>
-  </html>
+</html>
