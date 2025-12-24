@@ -1,35 +1,42 @@
-<div>
-  <h2>All Users</h2>
-  <div id="usersList"></div>
-</div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Users</title>
+<style>
+  body { font-family: Arial; padding: 10px; background: #f0f0f0; }
+  .user { border: 1px solid #ccc; margin: 5px; padding: 10px; border-radius:5px; }
+  button { margin-left: 10px; padding: 5px; border-radius:5px; cursor:pointer; }
+</style>
+</head>
+<body>
+<h2>Tous les utilisateurs</h2>
+<div id="usersList"></div>
 
-<script>
+<script type="module">
+import { auth, db, sendFriendRequest } from "./firebase.js";
+import { ref, get } from "firebase/database";
+
 const usersList = document.getElementById("usersList");
+const currentUser = auth.currentUser.uid;
 
-firebase.firestore().collection("users").get().then(snapshot => {
+get(ref(db, 'users')).then(snapshot => {
+  const users = snapshot.val() || {};
   usersList.innerHTML = '';
-  snapshot.forEach(doc => {
-    const user = doc.data();
+  for(let uid in users){
+    if(uid === currentUser) continue;
+    const user = users[uid];
     const div = document.createElement('div');
-    div.style.border = '1px solid #ccc';
-    div.style.margin = '5px';
-    div.style.padding = '10px';
-    div.style.borderRadius = '5px';
-    div.innerHTML = `
-      <strong>${user.username}</strong> (${user.email})
-      <button onclick="sendRequest('${doc.id}')">Ajouter</button>
-    `;
+    div.className = "user";
+    div.innerHTML = `<strong>${user.username}</strong> (${user.email})
+                     <button id="add-${uid}">Ajouter</button>`;
     usersList.appendChild(div);
-  });
+    document.getElementById(`add-${uid}`).addEventListener("click", () => {
+      sendFriendRequest(uid).then(() => alert("Demande envoyée !"));
+    });
+  }
 });
-
-function sendRequest(uid){
-  const currentUser = firebase.auth().currentUser.uid;
-  // Ajouter la logique pour la demande d'ami
-  firebase.firestore().collection("users").doc(uid).update({
-    pendingRequests: firebase.firestore.FieldValue.arrayUnion(currentUser)
-  }).then(()=>{
-    alert("Demande envoyée !");
-  });
-}
-      </script>
+</script>
+</body>
+</html>
