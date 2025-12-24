@@ -1,0 +1,45 @@
+<div>
+  <h2>Demandes envoyées (Pending)</h2>
+  <div id="pendingList"></div>
+</div>
+
+<script>
+const pendingList = document.getElementById("pendingList");
+const currentUser = firebase.auth().currentUser.uid;
+
+firebase.firestore().collection("users").doc(currentUser).get()
+  .then(doc => {
+    const pending = doc.data().pendingRequestsSent || [];
+    pendingList.innerHTML = '';
+
+    if(pending.length === 0){
+      pendingList.innerHTML = '<p>Aucune demande en attente.</p>';
+    } else {
+      pending.forEach(userId => {
+        firebase.firestore().collection("users").doc(userId).get()
+          .then(uDoc => {
+            const user = uDoc.data();
+            const div = document.createElement('div');
+            div.style.border = '1px solid #ccc';
+            div.style.margin = '5px';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.innerHTML = `
+              <strong>${user.username}</strong>
+              <button onclick="cancelRequest('${userId}')">Annuler</button>
+            `;
+            pendingList.appendChild(div);
+          });
+      });
+    }
+  });
+
+function cancelRequest(uid){
+  firebase.firestore().collection("users").doc(uid).update({
+    pendingRequests: firebase.firestore.FieldValue.arrayRemove(currentUser)
+  }).then(() => {
+    alert("Demande annulée !");
+    window.location.reload();
+  });
+}
+    </script>
