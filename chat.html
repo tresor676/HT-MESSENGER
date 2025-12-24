@@ -5,49 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat</title>
 <style>
-  body { font-family: Arial; padding:10px; background:#f0f0f0; }
-  #messagesContainer { height:60vh; overflow-y:auto; border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:5px; background:white; }
-  #messageInput { width:75%; padding:10px; }
-  #sendBtn { padding:10px; }
-  .message { margin-bottom:5px; padding:5px; border-radius:5px; }
+  body { font-family: Arial; margin:0; padding:0; display:flex; flex-direction:column; height:100vh; }
+  header { background:#4a90e2; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; }
+  #messagesContainer { flex:1; padding:10px; overflow-y:auto; background:#f1f1f1; }
+  .message { padding:5px 10px; margin:5px 0; border-radius:5px; max-width:70%; }
+  .message.mine { background:#4a90e2; color:white; margin-left:auto; }
+  .message.other { background:#ddd; color:black; margin-right:auto; }
+  #inputContainer { display:flex; padding:10px; border-top:1px solid #ccc; }
+  #msgInput { flex:1; padding:10px; }
+  #sendBtn { padding:10px; background:#4a90e2; color:white; border:none; border-radius:5px; margin-left:5px; cursor:pointer; }
 </style>
 </head>
 <body>
-<h2 id="chatTitle">Chat</h2>
+
+<header>
+  <span id="chatTitle">Chat</span>
+  <button id="backBtn" style="background:#e74c3c;color:white;border:none;padding:10px;border-radius:5px;cursor:pointer;">Retour</button>
+</header>
+
 <div id="messagesContainer"></div>
-<input type="text" id="messageInput" placeholder="Écrire un message...">
-<button id="sendBtn">Envoyer</button>
+
+<div id="inputContainer">
+  <input type="text" id="msgInput" placeholder="Écrire un message...">
+  <button id="sendBtn">Envoyer</button>
+</div>
 
 <script type="module">
-import { auth, sendMessage, listenMessages } from "./firebase.js";
-
-const urlParams = new URLSearchParams(window.location.search);
-const chatId = urlParams.get("id");
-const chatType = urlParams.get("type");
-const currentUser = auth.currentUser.uid;
+import { auth, listenMessages, sendMessage } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const messagesContainer = document.getElementById("messagesContainer");
-const messageInput = document.getElementById("messageInput");
+const msgInput = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
+const backBtn = document.getElementById("backBtn");
+const chatTitle = document.getElementById("chatTitle");
 
-listenMessages(chatId, chatType, messages => {
-  messagesContainer.innerHTML = '';
-  for(let mid in messages){
-    const msg = messages[mid];
-    const div = document.createElement('div');
-    div.className = "message";
-    div.style.background = msg.sender === currentUser ? "#4a90e2" : "#ccc";
-    div.style.color = msg.sender === currentUser ? "white" : "black";
-    div.innerText = `${msg.senderName}: ${msg.text}`;
-    messagesContainer.appendChild(div);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+// Récupérer paramètres URL
+const urlParams = new URLSearchParams(window.location.search);
+const chatId = urlParams.get("id");
+const chatType = urlParams.get("type"); // "private" ou "group"
+
+backBtn.addEventListener("click", () => window.location.replace("home.html"));
+
+onAuthStateChanged(auth, user => {
+  if(!user) {
+    window.location.replace("login.html");
+    return;
   }
-});
+  const uid = user.uid;
 
-sendBtn.addEventListener("click", () => {
-  const text = messageInput.value.trim();
-  if(text === "") return;
-  sendMessage(chatId, chatType, text).then(() => messageInput.value = "");
+  // ==================== LISTENER MESSAGES ====================
+  const dbRef = ref(getDatabase());
+  const chatRef = chatType === "private"
+    ? ref(getDatabase(), `privateChats/${chatId}`)
+    : ref(getDatabase(), `groups/${chatId}/messages`);
+
+  onValue(chatRef, snapshot => {
+    const messages = snapshot.val() || {};
+    messagesContainer.innerHTML = "";
+    Object.values(messages).forEach(msg => {
+      const div = document.createElement("div");
+      div.className = "message " + (msg.sender === uid ? "mine" : "other");
+      div.textContent = `${msg.senderName || "Autre"} : ${msg.text}`;
+      messagesContainer.appendChild(div);
+    });
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  });
+
+  // ==================== ENVOI MESSAGE ====================
+  sendBtn.addEventListener("click", () => {
+    const text = msgInput.value.trim();
+    if(!text) return;
+    sendMessage(chatId, chatType, text);
+    msgInput.value = "";
+  });
+
+  msgInput.addEventListener("keypress", e => {
+    if(e.key === "Enter") sendBtn.click();
+  });
 });
 </script>
 </body>
