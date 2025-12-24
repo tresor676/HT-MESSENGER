@@ -5,59 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Home</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-    height: 100vh;
-  }
-  .sidebar {
-    width: 90px;
-    background: #4a90e2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 20px;
-  }
-  .sidebar button {
-    margin: 10px 0;
-    padding: 10px;
-    width: 70px;
-    border: none;
-    border-radius: 8px;
-    background: #357ABD;
-    color: white;
-    cursor: pointer;
-  }
-  .sidebar button:hover {
-    background: #285D9B;
-  }
-  .container {
-    flex: 1;
-    background: #f0f0f0;
-    overflow-y: auto;
-    padding: 20px;
-  }
+  body { font-family: Arial; margin:0; padding:0; background:#f0f0f0; display:flex; flex-direction:column; height:100vh; }
+  #header { background:#4a90e2; color:white; padding:15px; text-align:center; font-size:1.5em; }
+  #nav { display:flex; justify-content:space-around; background:#fff; padding:10px; border-bottom:1px solid #ccc; }
+  #nav button { padding:10px; border:none; border-radius:5px; cursor:pointer; background:#4a90e2; color:white; }
+  #mainContainer { flex:1; overflow-y:auto; padding:10px; }
 </style>
 </head>
 <body>
-  <div class="sidebar">
-    <button id="btnAllUsers">All Users</button>
-    <button id="btnFriends">Friends</button>
-    <button id="btnPending">Pending</button>
-    <button id="btnToConfirm">To Confirm</button>
-    <button id="btnChatList">Chat List</button>
-    <button id="btnLogout">Logout</button>
-  </div>
 
-  <div class="container" id="mainContainer">
-    <!-- Les vues seront injectées ici -->
-  </div>
+<div id="header">Messagerie</div>
+<div id="nav">
+  <button id="btnAllUsers">Tous les utilisateurs</button>
+  <button id="btnFriends">Amis</button>
+  <button id="btnPending">Demandes envoyées</button>
+  <button id="btnToConfirm">À confirmer</button>
+  <button id="btnChatList">Chats</button>
+  <button id="btnGroups">Groupes</button>
+  <button id="btnLogout">Déconnexion</button>
+</div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/home.js"></script>
+<div id="mainContainer"></div>
+
+<script type="module">
+import { auth } from "./firebase.js";
+
+const mainContainer = document.getElementById("mainContainer");
+const btnAllUsers = document.getElementById("btnAllUsers");
+const btnFriends = document.getElementById("btnFriends");
+const btnPending = document.getElementById("btnPending");
+const btnToConfirm = document.getElementById("btnToConfirm");
+const btnChatList = document.getElementById("btnChatList");
+const btnGroups = document.getElementById("btnGroups");
+const btnLogout = document.getElementById("btnLogout");
+
+function loadView(view){
+  fetch(view).then(resp => resp.text())
+             .then(html => mainContainer.innerHTML = html);
+}
+
+btnAllUsers.addEventListener("click", () => loadView("allUsers.html"));
+btnFriends.addEventListener("click", () => loadView("friends.html"));
+btnPending.addEventListener("click", () => loadView("pending.html"));
+btnToConfirm.addEventListener("click", () => loadView("toConfirm.html"));
+btnChatList.addEventListener("click", () => loadView("chatList.html"));
+btnGroups.addEventListener("click", () => loadView("groupsList.html"));
+
+btnLogout.addEventListener("click", () => {
+  auth.signOut().then(() => window.location.href = "login.html");
+});
+
+// Par défaut, charger la page Tous les utilisateurs
+loadView("allUsers.html");
+</script>
+
 </body>
 </html>
