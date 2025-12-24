@@ -3,42 +3,138 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Friends</title>
+<title>Jeu Moto Pro</title>
 <style>
-  body { font-family: Arial; padding:10px; background:#f0f0f0; }
-  .friend { border:1px solid #ccc; margin:5px; padding:10px; border-radius:5px; }
-  button { margin-left:10px; padding:5px; border-radius:5px; cursor:pointer; }
+body { margin:0; overflow:hidden; background:#111; }
+canvas { display:block; margin:0 auto; background:#444; }
+#score { position:absolute; top:10px; left:10px; color:white; font-family:Arial; font-size:20px; }
+#level { position:absolute; top:35px; left:10px; color:white; font-family:Arial; font-size:18px; }
 </style>
 </head>
 <body>
-<h2>Amis</h2>
-<div id="friendsList"></div>
+<canvas id="gameCanvas"></canvas>
+<div id="score">Score: 0</div>
+<div id="level">Niveau: 1</div>
 
-<script type="module">
-import { auth, db } from "./firebase.js";
-import { ref, get } from "firebase/database";
+<script>
+const canvas=document.getElementById("gameCanvas");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 
-const friendsList = document.getElementById("friendsList");
-const currentUser = auth.currentUser.uid;
+// =================== Variables ===================
+let score=0;
+let level=1;
+const scoreDiv=document.getElementById("score");
+const levelDiv=document.getElementById("level");
 
-get(ref(db, `users/${currentUser}/friends`)).then(snapshot => {
-  const friends = snapshot.val() || {};
-  friendsList.innerHTML = '';
-  for(let uid in friends){
-    get(ref(db, `users/${uid}`)).then(uSnap => {
-      const user = uSnap.val();
-      const div = document.createElement('div');
-      div.className = "friend";
-      div.innerHTML = `<strong>${user.username}</strong>
-                       <button onclick="openChat('${uid}')">Chat</button>`;
-      friendsList.appendChild(div);
-    });
-  }
+const road={ width:canvas.width*0.6, x:canvas.width*0.2, speed:5, lineWidth:5 };
+let lines=[];
+for(let i=0;i<20;i++){ lines.push({x:canvas.width/2, y:i*80, length:50}); }
+
+const bike={ width:50, height:80, x:canvas.width/2-25, y:canvas.height-120, color:"#ff0000", speed:10 };
+
+// Obstacles
+let obstacles=[];
+let spawnInterval=1300;
+
+// Contrôles
+let left=false,right=false;
+document.addEventListener("keydown",e=>{if(e.key==="ArrowLeft") left=true; if(e.key==="ArrowRight") right=true;});
+document.addEventListener("keyup",e=>{if(e.key==="ArrowLeft") left=false; if(e.key==="ArrowRight") right=false;});
+canvas.addEventListener("touchstart", e=>{
+  const touchX=e.touches[0].clientX;
+  if(touchX<canvas.width/2) left=true; else right=true;
 });
+canvas.addEventListener("touchend", e=>{ left=false; right=false; });
 
-window.openChat = function(uid){
-  window.location.href = `chat.html?id=${uid}&type=private`;
-};
+// =================== Fonctions ===================
+function spawnObstacle(){
+  const types=["cone","car","barrier"];
+  const type = types[Math.floor(Math.random()*types.length)];
+  let width=type==="cone"?40:type==="car"?60:80;
+  let height=type==="cone"?40:type==="car"?80:30;
+  const x=road.x + Math.random()*(road.width-width);
+  obstacles.push({x:x,y:-height,width:width,height:height,type:type});
+}
+
+function isCollide(a,b){ return a.x<b.x+b.width && a.x+a.width>b.x && a.y<b.y+b.height && a.y+a.height>b.y; }
+
+function drawRoad(){
+  ctx.fillStyle="#333"; ctx.fillRect(road.x,0,road.width,canvas.height);
+  ctx.strokeStyle="white"; ctx.lineWidth=road.lineWidth;
+  lines.forEach(line=>{
+    ctx.beginPath();
+    ctx.moveTo(line.x,line.y);
+    ctx.lineTo(line.x,line.y+line.length);
+    ctx.stroke();
+    line.y+=road.speed;
+    if(line.y>canvas.height) line.y=-line.length;
+  });
+  // Bordures
+  ctx.strokeStyle="#fff";
+  ctx.lineWidth=10;
+  ctx.strokeRect(road.x,0,road.width,canvas.height);
+}
+
+function drawBike(){
+  ctx.fillStyle=bike.color;
+  ctx.fillRect(bike.x,bike.y,bike.width,bike.height);
+  // roues
+  ctx.fillStyle="black";
+  ctx.beginPath(); ctx.arc(bike.x+10,bike.y+bike.height,10,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bike.x+bike.width-10,bike.y+bike.height,10,0,Math.PI*2); ctx.fill();
+}
+
+function drawObstacles(){
+  for(let i=obstacles.length-1;i>=0;i--){
+    const obs=obstacles[i];
+    obs.y+=road.speed;
+
+    if(obs.type==="cone"){
+      ctx.fillStyle="orange";
+      ctx.beginPath();
+      ctx.moveTo(obs.x+obs.width/2,obs.y);
+      ctx.lineTo(obs.x,obs.y+obs.height);
+      ctx.lineTo(obs.x+obs.width,obs.y+obs.height);
+      ctx.closePath(); ctx.fill();
+    } else if(obs.type==="car"){
+      ctx.fillStyle="blue"; ctx.fillRect(obs.x,obs.y,obs.width,obs.height);
+    } else { // barrier
+      ctx.fillStyle="purple"; ctx.fillRect(obs.x,obs.y,obs.width,obs.height);
+    }
+
+    if(isCollide(bike,obs)){ alert("Game Over! Score: "+score); location.reload(); }
+
+    if(obs.y>canvas.height){
+      obstacles.splice(i,1);
+      score++;
+      scoreDiv.textContent="Score: "+score;
+      level=Math.floor(score/10)+1;
+      levelDiv.textContent="Niveau: "+level;
+      road.speed=5+level*0.7;
+    }
+  }
+}
+
+// =================== Game Loop ===================
+function gameLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(left && bike.x>road.x) bike.x-=bike.speed;
+  if(right && bike.x+bike.width<road.x+road.width) bike.x+=bike.speed;
+
+  drawRoad(); drawBike(); drawObstacles();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Spawn obstacles
+setInterval(spawnObstacle,spawnInterval);
+
+// Lancer le jeu
+gameLoop();
+
 </script>
 </body>
 </html>
