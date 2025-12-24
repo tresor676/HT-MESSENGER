@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+  }
+  .sidebar {
+    width: 90px;
+    background: #4a90e2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+  }
+  .sidebar button {
+    margin: 10px 0;
+    padding: 10px;
+    width: 70px;
+    border: none;
+    border-radius: 8px;
+    background: #357ABD;
+    color: white;
+    cursor: pointer;
+  }
+  .sidebar button:hover {
+    background: #285D9B;
+  }
+  .container {
+    flex: 1;
+    background: #f0f0f0;
+    overflow-y: auto;
+    padding: 20px;
+  }
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <button id="btnAllUsers">All Users</button>
+    <button id="btnFriends">Friends</button>
+    <button id="btnPending">Pending</button>
+    <button id="btnToConfirm">To Confirm</button>
+    <button id="btnChatList">Chat List</button>
+    <button id="btnLogout">Logout</button>
+  </div>
+
+  <div class="container" id="mainContainer">
+    <!-- Les vues seront injectées ici -->
+  </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/home.js"></script>
+</body>
+</html>
