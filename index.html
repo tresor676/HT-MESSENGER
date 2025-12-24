@@ -16,13 +16,13 @@
 <script type="module">
 import { auth } from "./firebase.js";
 
-setTimeout(() => {
-  if(auth.currentUser){
-    window.location.href = "home.html";
+auth.onAuthStateChanged(user => {
+  if(user){
+    window.location.href = "home.html"; // connecté
   } else {
-    window.location.href = "login.html";
+    window.location.href = "login.html"; // pas connecté
   }
-}, 2000); // 2 secondes de splash
+});
 </script>
 </body>
 </html>
