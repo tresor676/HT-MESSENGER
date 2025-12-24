@@ -97,4 +97,4 @@ export function listenMessages(chatId,type,callback){
     const msgs = snap.val()||{};
     callback(msgs);
   });
-}
+  }
