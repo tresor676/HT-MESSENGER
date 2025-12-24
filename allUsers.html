@@ -1,0 +1,35 @@
+<div>
+  <h2>All Users</h2>
+  <div id="usersList"></div>
+</div>
+
+<script>
+const usersList = document.getElementById("usersList");
+
+firebase.firestore().collection("users").get().then(snapshot => {
+  usersList.innerHTML = '';
+  snapshot.forEach(doc => {
+    const user = doc.data();
+    const div = document.createElement('div');
+    div.style.border = '1px solid #ccc';
+    div.style.margin = '5px';
+    div.style.padding = '10px';
+    div.style.borderRadius = '5px';
+    div.innerHTML = `
+      <strong>${user.username}</strong> (${user.email})
+      <button onclick="sendRequest('${doc.id}')">Ajouter</button>
+    `;
+    usersList.appendChild(div);
+  });
+});
+
+function sendRequest(uid){
+  const currentUser = firebase.auth().currentUser.uid;
+  // Ajouter la logique pour la demande d'ami
+  firebase.firestore().collection("users").doc(uid).update({
+    pendingRequests: firebase.firestore.FieldValue.arrayUnion(currentUser)
+  }).then(()=>{
+    alert("Demande envoyée !");
+  });
+}
+      </script>
