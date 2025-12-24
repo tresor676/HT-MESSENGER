@@ -1,0 +1,40 @@
+<div>
+  <h2>Friends</h2>
+  <div id="friendsList"></div>
+</div>
+
+<script>
+const friendsList = document.getElementById("friendsList");
+const currentUser = firebase.auth().currentUser.uid;
+
+firebase.firestore().collection("users").doc(currentUser).get()
+  .then(doc => {
+    const friends = doc.data().friends || [];
+    friendsList.innerHTML = '';
+    if(friends.length === 0){
+      friendsList.innerHTML = '<p>Aucun ami pour le moment.</p>';
+    } else {
+      friends.forEach(friendId => {
+        firebase.firestore().collection("users").doc(friendId).get()
+          .then(fDoc => {
+            const friend = fDoc.data();
+            const div = document.createElement('div');
+            div.style.border = '1px solid #ccc';
+            div.style.margin = '5px';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.innerHTML = `
+              <strong>${friend.username}</strong>
+              <button onclick="openChat('${friendId}')">Chat</button>
+            `;
+            friendsList.appendChild(div);
+          });
+      });
+    }
+  });
+
+function openChat(uid){
+  // Charger la page chatList ou chat avec cet ami
+  alert("Ouvrir chat avec: " + uid);
+}
+</script>
