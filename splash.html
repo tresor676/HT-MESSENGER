@@ -5,41 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Splash</title>
 <style>
-  body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #4a90e2;
-    color: white;
-    flex-direction: column;
-  }
-  .logo {
-    font-size: 2em;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
-  .loader {
-    border: 5px solid #fff;
-    border-top: 5px solid #000;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    0% { transform: rotate(0deg);}
-    100% { transform: rotate(360deg);}
-  }
+  body { font-family: Arial; display:flex; justify-content:center; align-items:center; height:100vh; background:#4a90e2; color:white; flex-direction:column; }
+  h1 { font-size:2em; }
 </style>
 </head>
 <body>
-  <div class="logo">MonMessenger</div>
-  <div class="loader"></div>
+<h1>Bienvenue</h1>
+<p>Chargement de l'application...</p>
 
-  <script src="js/firebase.js"></script>
-  <script src="js/splash.js"></script>
+<script type="module">
+import { auth } from "./firebase.js";
+
+setTimeout(() => {
+  if(auth.currentUser){
+    window.location.href = "home.html";
+  } else {
+    window.location.href = "login.html";
+  }
+}, 2000); // 2 secondes de splash
+</script>
 </body>
 </html>
