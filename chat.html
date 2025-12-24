@@ -1,0 +1,59 @@
+<div>
+  <h2 id="chatTitle">Chat</h2>
+  <div id="messagesContainer" style="height:60vh; overflow-y:auto; border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:5px;"></div>
+  <input type="text" id="messageInput" placeholder="Écrire un message..." style="width:80%; padding:10px;">
+  <button id="sendBtn" style="padding:10px;">Envoyer</button>
+</div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const chatId = urlParams.get("id"); // uid pour privé ou groupId pour groupe
+const chatType = urlParams.get("type"); // "private" ou "group"
+const currentUser = firebase.auth().currentUser.uid;
+
+const messagesContainer = document.getElementById("messagesContainer");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+
+// Charger les messages en temps réel
+let messagesRef;
+if(chatType === "private"){
+  const chatDocId = [currentUser, chatId].sort().join("_"); // identifiant unique chat privé
+  messagesRef = firebase.firestore().collection("privateChats").doc(chatDocId).collection("messages").orderBy("timestamp");
+  document.getElementById("chatTitle").innerText = "Chat avec " + chatId;
+} else {
+  messagesRef = firebase.firestore().collection("groups").doc(chatId).collection("messages").orderBy("timestamp");
+  document.getElementById("chatTitle").innerText = "Groupe " + chatId;
+}
+
+messagesRef.onSnapshot(snapshot => {
+  messagesContainer.innerHTML = "";
+  snapshot.forEach(doc => {
+    const msg = doc.data();
+    const div = document.createElement('div');
+    div.style.marginBottom = "5px";
+    div.style.padding = "5px";
+    div.style.borderRadius = "5px";
+    div.style.background = msg.sender === currentUser ? "#4a90e2" : "#ccc";
+    div.style.color = msg.sender === currentUser ? "white" : "black";
+    div.innerText = msg.senderName + ": " + msg.text;
+    messagesContainer.appendChild(div);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  });
+});
+
+// Envoyer un message
+sendBtn.addEventListener("click", () => {
+  const text = messageInput.value.trim();
+  if(text === "") return;
+  const msgObj = {
+    text: text,
+    sender: currentUser,
+    senderName: firebase.auth().currentUser.displayName || "Moi",
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  messagesRef.add(msgObj).then(() => {
+    messageInput.value = "";
+  });
+});
+</script>
