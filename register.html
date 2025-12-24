@@ -3,45 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Register</title>
+<title>Register - Messenger Loooviquue</title>
 <style>
-  body { font-family: Arial; display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; background:#f0f0f0; }
-  input { padding:10px; margin:5px; width:80%; }
-  button { padding:10px; margin:5px; width:84%; background:#4a90e2; color:white; border:none; border-radius:5px; cursor:pointer; }
+body { font-family: Arial; background:#f0f2f5; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+.container { background:white; padding:30px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); width:300px; }
+h2 { text-align:center; color:#1877f2; }
+input { width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc; }
+button { width:100%; padding:10px; background:#1877f2; color:white; border:none; border-radius:5px; cursor:pointer; }
+button:hover { background:#145dbf; }
+p { text-align:center; }
 </style>
 </head>
 <body>
-<h2>Créer un compte</h2>
-<input type="text" id="username" placeholder="Nom d'utilisateur">
-<input type="email" id="email" placeholder="Email">
-<input type="password" id="password" placeholder="Mot de passe">
+
+<div class="container">
+<h2>Register</h2>
+<input type="text" id="username" placeholder="Nom d'utilisateur" required>
+<input type="email" id="email" placeholder="Email" required>
+<input type="password" id="password" placeholder="Mot de passe" required>
 <button id="registerBtn">S'inscrire</button>
-<p>Déjà inscrit ? <a href="login.html">Se connecter</a></p>
+<p>Déjà inscrit ? <a href="login.html">Login</a></p>
+</div>
 
 <script type="module">
-import { auth, createUserProfile } from "./firebase.js";
-import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { registerUser } from "./firebase.js";
 
+const usernameInput = document.getElementById("username");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
 const registerBtn = document.getElementById("registerBtn");
-registerBtn.addEventListener("click", () => {
-  const username = document.getElementById("username").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  if(!username || !email || !password) return alert("Remplissez tous les champs !");
 
-  createUserWithEmailAndPassword(auth, email, password)
-    .then(userCred => {
-      // Mettre le nom dans le profil Firebase Auth
-      updateProfile(userCred.user, { displayName: username }).then(() => {
-        // Créer profil dans Realtime Database
-        createUserProfile(userCred.user.uid, username, email).then(() => {
-          alert("Compte créé !");
-          window.location.replace("home.html");
-        });
-      });
+registerBtn.addEventListener("click", () => {
+  const username = usernameInput.value.trim();
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if(!username || !email || !password){
+    alert("Veuillez remplir tous les champs !");
+    return;
+  }
+
+  registerUser(email,password,username)
+    .then(() => {
+      alert("Inscription réussie !");
+      window.location.replace("home.html"); // redirige vers home après inscription
     })
-    .catch(err => alert(err.message));
+    .catch(err => {
+      console.error(err);
+      alert("Erreur : "+err.message);
+    });
 });
 </script>
+
 </body>
 </html>
