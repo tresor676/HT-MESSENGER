@@ -1,45 +1,46 @@
-<div>
-  <h2>Demandes envoyées (Pending)</h2>
-  <div id="pendingList"></div>
-</div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pending</title>
+<style>
+  body { font-family: Arial; padding:10px; background:#f0f0f0; }
+  .pending { border:1px solid #ccc; margin:5px; padding:10px; border-radius:5px; }
+  button { margin-left:10px; padding:5px; border-radius:5px; cursor:pointer; }
+</style>
+</head>
+<body>
+<h2>Demandes envoyées</h2>
+<div id="pendingList"></div>
 
-<script>
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { ref, get, remove } from "firebase/database";
+
 const pendingList = document.getElementById("pendingList");
-const currentUser = firebase.auth().currentUser.uid;
+const currentUser = auth.currentUser.uid;
 
-firebase.firestore().collection("users").doc(currentUser).get()
-  .then(doc => {
-    const pending = doc.data().pendingRequestsSent || [];
-    pendingList.innerHTML = '';
-
-    if(pending.length === 0){
-      pendingList.innerHTML = '<p>Aucune demande en attente.</p>';
-    } else {
-      pending.forEach(userId => {
-        firebase.firestore().collection("users").doc(userId).get()
-          .then(uDoc => {
-            const user = uDoc.data();
-            const div = document.createElement('div');
-            div.style.border = '1px solid #ccc';
-            div.style.margin = '5px';
-            div.style.padding = '10px';
-            div.style.borderRadius = '5px';
-            div.innerHTML = `
-              <strong>${user.username}</strong>
-              <button onclick="cancelRequest('${userId}')">Annuler</button>
-            `;
-            pendingList.appendChild(div);
-          });
+get(ref(db, `users/${currentUser}/pendingRequestsSent`)).then(snapshot => {
+  const pending = snapshot.val() || {};
+  pendingList.innerHTML = '';
+  for(let uid in pending){
+    get(ref(db, `users/${uid}`)).then(uSnap => {
+      const user = uSnap.val();
+      const div = document.createElement('div');
+      div.className = "pending";
+      div.innerHTML = `<strong>${user.username}</strong>
+                       <button id="cancel-${uid}">Annuler</button>`;
+      pendingList.appendChild(div);
+      document.getElementById(`cancel-${uid}`).addEventListener("click", () => {
+        remove(ref(db, `users/${uid}/pendingRequests/${currentUser}`));
+        remove(ref(db, `users/${currentUser}/pendingRequestsSent/${uid}`));
+        alert("Demande annulée !");
+        window.location.reload();
       });
-    }
-  });
-
-function cancelRequest(uid){
-  firebase.firestore().collection("users").doc(uid).update({
-    pendingRequests: firebase.firestore.FieldValue.arrayRemove(currentUser)
-  }).then(() => {
-    alert("Demande annulée !");
-    window.location.reload();
-  });
-}
-    </script>
+    });
+  }
+});
+</script>
+</body>
+</html>
