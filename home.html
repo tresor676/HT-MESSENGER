@@ -5,208 +5,202 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Home</title>
 <style>
-  body { font-family: Arial; margin:0; padding:0; background:#f0f0f0; display:flex; flex-direction:column; height:100vh; }
-  #header { background:#4a90e2; color:white; padding:15px; text-align:center; font-size:1.5em; }
-  #nav { display:flex; flex-wrap:wrap; justify-content:space-around; background:#fff; padding:10px; border-bottom:1px solid #ccc; }
-  #nav button { padding:10px; margin:3px; border:none; border-radius:5px; cursor:pointer; background:#4a90e2; color:white; }
-  #mainContainer { flex:1; overflow-y:auto; padding:10px; }
-  .section { display:none; }
-  .active { display:block; }
-  .user, .friend, .pending, .request, .chat, .group, .message { border:1px solid #ccc; padding:10px; margin:5px; border-radius:5px; background:white; }
-  input, button { padding:5px; margin:3px; border-radius:5px; }
+  body { font-family: Arial; margin:0; padding:0; display:flex; flex-direction:column; background:#f9f9f9; }
+  header { background:#4a90e2; color:white; padding:15px; text-align:center; }
+  main { display:flex; flex-direction:row; flex-wrap:wrap; padding:10px; }
+  section { flex:1 1 300px; border:1px solid #ccc; margin:5px; padding:10px; border-radius:5px; background:white; }
+  h2 { margin-top:0; }
+  input, button { padding:5px; margin:5px 0; }
+  .user-item, .friend-item, .chat-item, .group-item { border:1px solid #ddd; padding:5px; margin:3px 0; border-radius:3px; display:flex; justify-content:space-between; align-items:center; }
 </style>
 </head>
 <body>
+<header>
+  <h1>Accueil</h1>
+  <button id="logoutBtn" style="background:#e74c3c;color:white;border:none;padding:10px;border-radius:5px;cursor:pointer;">Se déconnecter</button>
+</header>
 
-<div id="header">Messagerie</div>
-<div id="nav">
-  <button onclick="showSection('allUsers')">Tous les utilisateurs</button>
-  <button onclick="showSection('friends')">Amis</button>
-  <button onclick="showSection('pending')">Demandes envoyées</button>
-  <button onclick="showSection('toConfirm')">À confirmer</button>
-  <button onclick="showSection('chatList')">Chats</button>
-  <button onclick="showSection('groups')">Groupes</button>
-  <button onclick="logout()">Déconnexion</button>
-</div>
-
-<div id="mainContainer">
-
+<main>
   <!-- ALL USERS -->
-  <div id="allUsers" class="section active">
+  <section>
     <h2>Tous les utilisateurs</h2>
-    <div id="usersList"></div>
-  </div>
+    <div id="allUsersContainer"></div>
+  </section>
 
   <!-- FRIENDS -->
-  <div id="friends" class="section">
+  <section>
     <h2>Amis</h2>
-    <div id="friendsList"></div>
-  </div>
+    <div id="friendsContainer"></div>
+  </section>
 
   <!-- PENDING -->
-  <div id="pending" class="section">
-    <h2>Demandes envoyées</h2>
-    <div id="pendingList"></div>
-  </div>
+  <section>
+    <h2>Demandes reçues</h2>
+    <div id="pendingContainer"></div>
+  </section>
 
   <!-- TO CONFIRM -->
-  <div id="toConfirm" class="section">
-    <h2>Demandes à confirmer</h2>
-    <div id="toConfirmList"></div>
-  </div>
+  <section>
+    <h2>Demandes envoyées</h2>
+    <div id="toConfirmContainer"></div>
+  </section>
 
   <!-- CHAT LIST -->
-  <div id="chatList" class="section">
-    <h2>Liste des conversations</h2>
+  <section>
+    <h2>Chats</h2>
     <div id="chatListContainer"></div>
-  </div>
+  </section>
 
   <!-- GROUPS -->
-  <div id="groups" class="section">
+  <section>
     <h2>Groupes</h2>
-    <input type="text" id="newGroupName" placeholder="Nom du groupe">
-    <button id="createGroupBtn">Créer un groupe</button>
     <div id="groupsContainer"></div>
-  </div>
-
-</div>
+    <input type="text" id="newGroupName" placeholder="Nom du groupe" style="width:70%; padding:5px;">
+    <button id="createGroupBtn">Créer un groupe</button>
+  </section>
+</main>
 
 <script type="module">
-import { auth, db, createUserProfile, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, createGroup, sendMessage, listenMessages } from "./firebase.js";
-import { ref, get, set, push, remove, update } from "firebase/database";
+import { auth, db, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, createGroup, listenMessages } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { ref, set, get, child, update, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-const currentUser = auth.currentUser.uid;
-
-// Fonction pour afficher une section
-function showSection(id){
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-// Déconnexion
-function logout(){ auth.signOut().then(()=> window.location.href="login.html"); }
-
-// ===================== ALL USERS =====================
-const usersList = document.getElementById("usersList");
-get(ref(db, 'users')).then(snapshot=>{
-  const users = snapshot.val() || {};
-  for(let uid in users){
-    if(uid===currentUser) continue;
-    const user = users[uid];
-    const div = document.createElement('div');
-    div.className="user";
-    div.innerHTML=`<strong>${user.username}</strong> (${user.email}) <button id="add-${uid}">Ajouter</button>`;
-    usersList.appendChild(div);
-    document.getElementById(`add-${uid}`).addEventListener("click",()=>{
-      sendFriendRequest(uid).then(()=>alert("Demande envoyée !"));
-    });
-  }
-});
-
-// ===================== FRIENDS =====================
-const friendsList = document.getElementById("friendsList");
-get(ref(db, `users/${currentUser}/friends`)).then(snapshot=>{
-  const friends = snapshot.val()||{};
-  for(let uid in friends){
-    get(ref(db, `users/${uid}`)).then(uSnap=>{
-      const user = uSnap.val();
-      const div = document.createElement('div');
-      div.className="friend";
-      div.innerHTML=`<strong>${user.username}</strong> <button onclick="openChat('${uid}')">Chat</button>`;
-      friendsList.appendChild(div);
-    });
-  }
-});
-window.openChat = function(uid){ window.location.href=`chat.html?id=${uid}&type=private`; }
-
-// ===================== PENDING =====================
-const pendingList = document.getElementById("pendingList");
-get(ref(db, `users/${currentUser}/pendingRequestsSent`)).then(snapshot=>{
-  const pending = snapshot.val()||{};
-  for(let uid in pending){
-    get(ref(db, `users/${uid}`)).then(uSnap=>{
-      const user = uSnap.val();
-      const div = document.createElement('div');
-      div.className="pending";
-      div.innerHTML=`<strong>${user.username}</strong> <button id="cancel-${uid}">Annuler</button>`;
-      pendingList.appendChild(div);
-      document.getElementById(`cancel-${uid}`).addEventListener("click",()=>{
-        remove(ref(db, `users/${uid}/pendingRequests/${currentUser}`));
-        remove(ref(db, `users/${currentUser}/pendingRequestsSent/${uid}`));
-        alert("Demande annulée !");
-        window.location.reload();
-      });
-    });
-  }
-});
-
-// ===================== TO CONFIRM =====================
-const toConfirmList = document.getElementById("toConfirmList");
-get(ref(db, 'users')).then(snapshot=>{
-  const users = snapshot.val()||{};
-  for(let uid in users){
-    if(users[uid].pendingRequests && users[uid].pendingRequests[currentUser]){
-      const div = document.createElement('div');
-      div.className="request";
-      div.innerHTML=`<strong>${users[uid].username}</strong>
-        <button id="accept-${uid}">Accepter</button>
-        <button id="reject-${uid}">Refuser</button>`;
-      toConfirmList.appendChild(div);
-      document.getElementById(`accept-${uid}`).addEventListener("click",()=>{ acceptFriendRequest(uid).then(()=>window.location.reload()); });
-      document.getElementById(`reject-${uid}`).addEventListener("click",()=>{ rejectFriendRequest(uid).then(()=>window.location.reload()); });
-    }
-  }
-});
-
-// ===================== CHAT LIST =====================
+const logoutBtn = document.getElementById("logoutBtn");
+const allUsersContainer = document.getElementById("allUsersContainer");
+const friendsContainer = document.getElementById("friendsContainer");
+const pendingContainer = document.getElementById("pendingContainer");
+const toConfirmContainer = document.getElementById("toConfirmContainer");
 const chatListContainer = document.getElementById("chatListContainer");
-get(ref(db, `users/${currentUser}/friends`)).then(snapshot=>{
-  const friends = snapshot.val()||{};
-  for(let uid in friends){
-    get(ref(db, `users/${uid}`)).then(uSnap=>{
-      const user = uSnap.val();
-      const div = document.createElement('div');
-      div.className="chat";
-      div.innerHTML=`<strong>${user.username}</strong> <button onclick="openChat('${uid}')">Chat</button>`;
-      chatListContainer.appendChild(div);
-    });
-  }
-});
-get(ref(db, 'groups')).then(snapshot=>{
-  const groups = snapshot.val()||{};
-  for(let gid in groups){
-    if(groups[gid].members && groups[gid].members[currentUser]){
-      const div = document.createElement('div');
-      div.className="chat";
-      div.innerHTML=`<strong>${groups[gid].name}</strong> <button onclick="openGroupChat('${gid}')">Chat</button>`;
-      chatListContainer.appendChild(div);
-    }
-  }
-});
-window.openGroupChat = function(gid){ window.location.href=`chat.html?id=${gid}&type=group`; }
-
-// ===================== GROUPS =====================
 const groupsContainer = document.getElementById("groupsContainer");
 const newGroupName = document.getElementById("newGroupName");
 const createGroupBtn = document.getElementById("createGroupBtn");
 
-get(ref(db, 'groups')).then(snapshot=>{
-  const groups = snapshot.val()||{};
-  for(let gid in groups){
-    if(groups[gid].members && groups[gid].members[currentUser]){
-      const div = document.createElement('div');
-      div.className="group";
-      div.innerHTML=`<strong>${groups[gid].name}</strong> <button onclick="openGroupChat('${gid}')">Ouvrir chat</button>`;
-      groupsContainer.appendChild(div);
-    }
+onAuthStateChanged(auth, async user => {
+  if(!user) {
+    window.location.replace("login.html");
+    return;
   }
-});
 
-createGroupBtn.addEventListener("click",()=>{
-  const name = newGroupName.value.trim();
-  if(!name) return alert("Entrez un nom !");
-  createGroup(name).then(()=>window.location.reload());
+  const uid = user.uid;
+  const dbRef = ref(db);
+
+  logoutBtn.addEventListener("click", () => {
+    auth.signOut().then(()=> window.location.replace("login.html"));
+  });
+
+  // ==================== ALL USERS ====================
+  onValue(ref(db, "users"), snapshot => {
+    const users = snapshot.val() || {};
+    allUsersContainer.innerHTML = "";
+    friendsContainer.innerHTML = "";
+    pendingContainer.innerHTML = "";
+    toConfirmContainer.innerHTML = "";
+
+    Object.keys(users).forEach(userId => {
+      const u = users[userId];
+      if(userId === uid) return; // ignorer soi-même
+
+      // Statut
+      const isFriend = users[uid]?.friends?.[userId];
+      const pendingReceived = users[uid]?.pendingRequests?.[userId];
+      const pendingSent = users[uid]?.pendingRequestsSent?.[userId];
+
+      // ALL USERS
+      const divUser = document.createElement("div");
+      divUser.className = "user-item";
+      divUser.textContent = u.username;
+      const btn = document.createElement("button");
+      if(isFriend) btn.textContent = "Amis"; 
+      else if(pendingSent) btn.textContent = "En attente"; 
+      else btn.textContent = "Ajouter";
+      btn.disabled = isFriend || pendingSent;
+      btn.addEventListener("click", () => sendFriendRequest(userId));
+      divUser.appendChild(btn);
+      allUsersContainer.appendChild(divUser);
+
+      // FRIENDS
+      if(isFriend){
+        const divFriend = document.createElement("div");
+        divFriend.className = "friend-item";
+        divFriend.textContent = u.username;
+        friendsContainer.appendChild(divFriend);
+      }
+
+      // PENDING (demandes reçues)
+      if(pendingReceived){
+        const divPending = document.createElement("div");
+        divPending.className = "friend-item";
+        divPending.textContent = u.username;
+        const btnAccept = document.createElement("button");
+        btnAccept.textContent = "Accepter";
+        btnAccept.addEventListener("click", () => acceptFriendRequest(userId));
+        const btnReject = document.createElement("button");
+        btnReject.textContent = "Refuser";
+        btnReject.addEventListener("click", () => rejectFriendRequest(userId));
+        divPending.appendChild(btnAccept);
+        divPending.appendChild(btnReject);
+        pendingContainer.appendChild(divPending);
+      }
+
+      // TO CONFIRM (demandes envoyées)
+      if(pendingSent){
+        const divSent = document.createElement("div");
+        divSent.className = "friend-item";
+        divSent.textContent = u.username;
+        toConfirmContainer.appendChild(divSent);
+      }
+    });
+  });
+
+  // ==================== GROUPS ====================
+  onValue(ref(db, "groups"), snapshot => {
+    const groups = snapshot.val() || {};
+    groupsContainer.innerHTML = "";
+    Object.keys(groups).forEach(groupId => {
+      const g = groups[groupId];
+      if(!g.members[uid]) return; // afficher seulement ceux où l'utilisateur est membre
+      const div = document.createElement("div");
+      div.className = "group-item";
+      div.textContent = g.name;
+      const btn = document.createElement("button");
+      btn.textContent = "Ouvrir chat";
+      btn.addEventListener("click", () => {
+        window.location.href = `chat.html?id=${groupId}&type=group`;
+      });
+      div.appendChild(btn);
+      groupsContainer.appendChild(div);
+    });
+  });
+
+  createGroupBtn.addEventListener("click", () => {
+    const name = newGroupName.value.trim();
+    if(!name) return alert("Entrez un nom de groupe !");
+    createGroup(name);
+    newGroupName.value = "";
+  });
+
+  // ==================== CHAT LIST ====================
+  onValue(ref(db, "privateChats"), snapshot => {
+    const chats = snapshot.val() || {};
+    chatListContainer.innerHTML = "";
+    Object.keys(chats).forEach(chatId => {
+      const chat = chats[chatId];
+      if(chatId.includes(uid)){ // simple check chat contient uid
+        const div = document.createElement("div");
+        div.className = "chat-item";
+        div.textContent = "Chat privé";
+        const btn = document.createElement("button");
+        btn.textContent = "Ouvrir";
+        btn.addEventListener("click", () => {
+          window.location.href = `chat.html?id=${chatId}&type=private`;
+        });
+        div.appendChild(btn);
+        chatListContainer.appendChild(div);
+      }
+    });
+  });
+
 });
 </script>
 </body>
-  </html>
+</html>
