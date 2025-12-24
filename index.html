@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<body>
+
+<h2>Connexion</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Mot de passe">
+<button id="login">Login</button>
+<button id="register">Register</button>
+
+<script type="module">
+import { login, register } from "./src/auth.js";
+import { auth } from "./src/firebase.js";
+import { onAuthStateChanged } from "firebase/auth";
+
+document.getElementById("login").onclick = async () => {
+  await login(email.value, password.value);
+};
+
+document.getElementById("register").onclick = async () => {
+  await register(email.value, password.value);
+};
+
+onAuthStateChanged(auth, user => {
+  if (user) window.location.href = "dashboard.html";
+});
+</script>
+
+</body>
+</html>
