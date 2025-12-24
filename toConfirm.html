@@ -1,0 +1,53 @@
+<div>
+  <h2>Demandes à confirmer</h2>
+  <div id="toConfirmList"></div>
+</div>
+
+<script>
+const toConfirmList = document.getElementById("toConfirmList");
+
+firebase.firestore().collection("users").get()
+  .then(snapshot => {
+    toConfirmList.innerHTML = '';
+    snapshot.forEach(doc => {
+      const user = doc.data();
+      const pending = user.pendingRequests || [];
+      if(pending.includes(currentUser)){
+        const div = document.createElement('div');
+        div.style.border = '1px solid #ccc';
+        div.style.margin = '5px';
+        div.style.padding = '10px';
+        div.style.borderRadius = '5px';
+        div.innerHTML = `
+          <strong>${user.username}</strong>
+          <button onclick="acceptRequest('${doc.id}')">Accepter</button>
+          <button onclick="rejectRequest('${doc.id}')">Refuser</button>
+        `;
+        toConfirmList.appendChild(div);
+      }
+    });
+  });
+
+function acceptRequest(uid){
+  // Ajouter ami
+  firebase.firestore().collection("users").doc(currentUser).update({
+    friends: firebase.firestore.FieldValue.arrayUnion(uid)
+  });
+  firebase.firestore().collection("users").doc(uid).update({
+    friends: firebase.firestore.FieldValue.arrayUnion(currentUser),
+    pendingRequests: firebase.firestore.FieldValue.arrayRemove(currentUser)
+  }).then(() => {
+    alert("Ami ajouté !");
+    window.location.reload();
+  });
+}
+
+function rejectRequest(uid){
+  firebase.firestore().collection("users").doc(uid).update({
+    pendingRequests: firebase.firestore.FieldValue.arrayRemove(currentUser)
+  }).then(() => {
+    alert("Demande refusée !");
+    window.location.reload();
+  });
+}
+          </script>
