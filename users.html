@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Utilisateurs - Messenger</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="/style.css">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1877f2">
-<script type="module" src="app.js"></script>
+<script type="module" src="/app.js"></script>
 </head>
 <body>
 <h1>Utilisateurs</h1>
@@ -15,7 +15,7 @@
 <script type="module">
 import { checkAuth, loadUsers, logoutUser } from './app.js';
 checkAuth();
-document.getElementById("logout").onclick = async ()=>{ await logoutUser(); window.location.href="index.html"; };
+document.getElementById("logout").onclick = async ()=>{ await logoutUser(); window.location.href="/index.html"; };
 loadUsers("usersList");
 </script>
 </body>
