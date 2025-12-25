@@ -2,58 +2,30 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Register - Messenger Loooviquue</title>
-<style>
-body { font-family: Arial; background:#f0f2f5; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
-.container { background:white; padding:30px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); width:300px; }
-h2 { text-align:center; color:#1877f2; }
-input { width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc; }
-button { width:100%; padding:10px; background:#1877f2; color:white; border:none; border-radius:5px; cursor:pointer; }
-button:hover { background:#145dbf; }
-p { text-align:center; }
-</style>
+<title>Register - Messenger</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1877f2">
+<script src="app.js" defer></script>
 </head>
 <body>
-
 <div class="container">
-<h2>Register</h2>
-<input type="text" id="username" placeholder="Nom d'utilisateur" required>
-<input type="email" id="email" placeholder="Email" required>
-<input type="password" id="password" placeholder="Mot de passe" required>
-<button id="registerBtn">S'inscrire</button>
-<p>Déjà inscrit ? <a href="login.html">Login</a></p>
+  <h2>Créer un compte</h2>
+  <input id="username" placeholder="Nom d'utilisateur">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Mot de passe">
+  <button id="btnRegister">S'inscrire</button>
+  <p style="text-align:center;">Déjà inscrit ? <a href="index.html">Se connecter</a></p>
 </div>
-
-<script type="module">
-import { registerUser } from "./firebase.js";
-
-const usernameInput = document.getElementById("username");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const registerBtn = document.getElementById("registerBtn");
-
-registerBtn.addEventListener("click", () => {
-  const username = usernameInput.value.trim();
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
-
-  if(!username || !email || !password){
-    alert("Veuillez remplir tous les champs !");
-    return;
-  }
-
-  registerUser(email,password,username)
-    .then(() => {
-      alert("Inscription réussie !");
-      window.location.replace("home.html"); // redirige vers home après inscription
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Erreur : "+err.message);
-    });
-});
+<script>
+document.getElementById("btnRegister").onclick = async ()=>{
+  const username = document.getElementById("username").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  if(!username||!email||!password){alert("Remplissez tous les champs"); return;}
+  try { await registerUser(username,email,password); window.location.href="index.html"; }
+  catch(e){alert(e.message);}
+};
 </script>
-
 </body>
 </html>
