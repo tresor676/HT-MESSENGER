@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1877f2">
-<script src="app.js" defer></script>
+<script type="module" src="app.js"></script>
 </head>
 <body>
 <h2 id="chatWith">Chat</h2>
@@ -16,11 +16,13 @@
   <button id="sendBtn">Envoyer</button>
 </div>
 <button id="backUsers">Retour liste utilisateurs</button>
-<script>
+<script type="module">
+import { checkAuth, loadChat } from './app.js';
 checkAuth();
 const params = new URLSearchParams(window.location.search);
-const chatWithUid = params.get("uid");
-loadChat(chatWithUid);
+const uid = params.get("uid");
+const name = params.get("name");
+loadChat(uid,name);
 document.getElementById("backUsers").onclick = ()=>window.location.href="users.html";
 </script>
 </body>
