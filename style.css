@@ -10,8 +10,23 @@ button:hover{background:#145dbf;}
 .avatar{width:40px;height:40px;border-radius:50%;display:flex;justify-content:center;align-items:center;color:white;font-weight:bold;margin-right:10px;font-size:16px;}
 #chatBox{width:100%;height:400px;background:#fff;border-radius:10px;padding:10px;overflow-y:auto;display:flex;flex-direction:column;}
 .message{max-width:70%;padding:8px 12px;margin:5px 0;border-radius:15px;word-wrap:break-word;}
-.me{background:#1877f2;color:white;align-self:flex-end;}
-.other{background:#e4e6eb;color:black;align-self:flex-start;}
-.input-container{display:flex;margin-top:10px;}
-.input-container input{flex:1;border-radius:20px;padding:10px;border:1px solid #ccc;}
-.input-container button{border-radius:20px;margin-left:5px;padding:10px 15px;}
+.input-container {
+  display: flex;
+  margin-top: 10px;
+}
+
+.input-container input {
+  flex: 1;            /* prend tout l’espace restant */
+  border-radius: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;    /* augmente la taille du texte pour mieux correspondre au bouton */
+}
+
+.input-container button {
+  border-radius: 20px;
+  margin-left: 5px;
+  padding: 10px 20px; /* rend le bouton un peu plus large */
+  font-size: 16px;    /* pour que le texte du bouton soit de la même taille que l’input */
+  cursor: pointer;
+}
