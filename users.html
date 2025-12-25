@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Utilisateurs - Messenger</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1877f2">
+<script src="app.js" defer></script>
+</head>
+<body>
+<h1>Utilisateurs</h1>
+<ul id="usersList"></ul>
+<button id="logout">Déconnexion</button>
+<script>
+checkAuth(); // redirige si non connecté
+
+document.getElementById("logout").onclick = async ()=>{
+  await logoutUser();
+  window.location.href="index.html";
+};
+
+loadUsers("usersList");
+</script>
+</body>
+</html>
