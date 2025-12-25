@@ -24,7 +24,7 @@ document.getElementById("btnRegister").onclick = async ()=>{
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   if(!username||!email||!password){ alert("Remplissez tous les champs"); return; }
-  try { await registerUser(username,email,password); window.location.href="index.html"; }
+  try { await registerUser(username,email,password); window.location.href="users.html"; }
   catch(e){ alert(e.message); }
 };
 </script>
