@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1877f2">
-<script src="app.js" defer></script>
+<script type="module" src="app.js"></script>
 </head>
 <body>
 <div class="container">
@@ -17,14 +17,15 @@
   <button id="btnRegister">S'inscrire</button>
   <p style="text-align:center;">Déjà inscrit ? <a href="index.html">Se connecter</a></p>
 </div>
-<script>
+<script type="module">
+import { registerUser } from './app.js';
 document.getElementById("btnRegister").onclick = async ()=>{
   const username = document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  if(!username||!email||!password){alert("Remplissez tous les champs"); return;}
+  if(!username||!email||!password){ alert("Remplissez tous les champs"); return; }
   try { await registerUser(username,email,password); window.location.href="index.html"; }
-  catch(e){alert(e.message);}
+  catch(e){ alert(e.message); }
 };
 </script>
 </body>
