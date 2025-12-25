@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Chat - Messenger</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="/style.css">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1877f2">
-<script type="module" src="app.js"></script>
+<script type="module" src="/app.js"></script>
 </head>
 <body>
 <h2 id="chatWith">Chat</h2>
@@ -23,7 +23,7 @@ const params = new URLSearchParams(window.location.search);
 const uid = params.get("uid");
 const name = params.get("name");
 loadChat(uid,name);
-document.getElementById("backUsers").onclick = ()=>window.location.href="users.html";
+document.getElementById("backUsers").onclick = ()=>window.location.href="/users.html";
 </script>
 </body>
 </html>
