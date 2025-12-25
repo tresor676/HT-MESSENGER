@@ -1,3 +1,4 @@
+/* ==== Global Styles ==== */
 body {
   font-family: Arial, sans-serif;
   background: #f0f2f5;
@@ -19,7 +20,7 @@ h1, h2 {
   text-align: center;
 }
 
-input, button {
+input {
   width: 100%;
   padding: 10px;
   margin: 10px 0;
@@ -29,16 +30,21 @@ input, button {
 }
 
 button {
+  /* Supprime width:100% pour que le button du chat fonctionne */
   background: #1877f2;
   color: white;
   border: none;
   cursor: pointer;
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 5px;
 }
 
 button:hover {
   background: #145dbf;
 }
 
+/* ==== Users List ==== */
 #usersList {
   list-style: none;
   padding: 0;
@@ -72,6 +78,7 @@ button:hover {
   font-size: 16px;
 }
 
+/* ==== Chat Box ==== */
 #chatBox {
   width: 100%;
   height: 400px;
@@ -103,10 +110,11 @@ button:hover {
   align-self: flex-start;
 }
 
+/* ==== Input Container Chat ==== */
 .input-container {
   display: flex;
   margin-top: 10px;
-  align-items: stretch; /* correction : input et button même hauteur */
+  align-items: stretch; /* aligne input et button */
 }
 
 .input-container input {
@@ -115,8 +123,8 @@ button:hover {
   padding: 0 15px;
   font-size: 16px;
   border: 1px solid #ccc;
-  height: 45px;           /* hauteur fixe identique au bouton */
-  box-sizing: border-box;  /* inclut padding et border dans la hauteur */
+  height: 45px;
+  box-sizing: border-box;
 }
 
 .input-container button {
@@ -124,9 +132,10 @@ button:hover {
   margin-left: 5px;
   padding: 0 20px;
   font-size: 16px;
-  height: 45px;            /* même hauteur que l’input */
+  height: 45px;         /* même hauteur que l’input */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  }
+  width: auto;           /* important pour ne pas dépasser */
+}
