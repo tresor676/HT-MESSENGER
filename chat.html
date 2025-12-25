@@ -2,94 +2,26 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat - Loooviquue</title>
-<style>
-body { margin:0; font-family: Arial; display:flex; flex-direction:column; height:100vh; background:#f0f2f5; }
-header { background:#1877f2; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; font-size:16px; }
-#chatArea { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; }
-.message { padding:10px; margin:5px; border-radius:20px; max-width:70%; display:flex; align-items:flex-end; word-wrap:break-word; }
-.message.mine { background:#1877f2; color:white; margin-left:auto; justify-content:flex-end;}
-.message.other { background:#f0f0f0; color:black; margin-right:auto; justify-content:flex-start;}
-.message img { width:30px; height:30px; border-radius:50%; margin-right:5px; }
-#inputContainer { display:flex; padding:10px; background:white; border-top:1px solid #ccc; }
-#msgInput { flex:1; padding:10px; border-radius:20px; border:1px solid #ccc; }
-#sendBtn { padding:10px 20px; margin-left:5px; background:#1877f2; color:white; border:none; border-radius:20px; cursor:pointer; }
-@media(max-width:768px){#chatArea{padding:5px;}#sendBtn{padding:10px 15px;}}
-</style>
+<title>Chat - Messenger</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1877f2">
+<script src="app.js" defer></script>
 </head>
 <body>
-
-<header>
-<span id="chatTitle">Chat</span>
-<button id="backBtn" style="background:#e74c3c;color:white;border:none;padding:10px;border-radius:5px;cursor:pointer;">Retour</button>
-</header>
-
-<div id="chatArea"><p>Chargement du chat...</p></div>
-
-<div id="inputContainer">
-<input type="text" id="msgInput" placeholder="Écrire un message...">
-<button id="sendBtn">Envoyer</button>
+<h2 id="chatWith">Chat</h2>
+<div id="chatBox"></div>
+<div class="input-container">
+  <input id="message" placeholder="Écrire un message...">
+  <button id="sendBtn">Envoyer</button>
 </div>
-
-<script type="module">
-import { auth, listenMessages, sendMessage } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-const chatArea=document.getElementById("chatArea");
-const chatTitle=document.getElementById("chatTitle");
-const msgInput=document.getElementById("msgInput");
-const sendBtn=document.getElementById("sendBtn");
-const backBtn=document.getElementById("backBtn");
-
-let chatId=null;
-let chatType=null;
-let currentUid=null;
-
-function randomAvatar(id){ return `https://i.pravatar.cc/150?u=${id}`; }
-
-backBtn.addEventListener("click",()=>window.location.replace("home.html"));
-
-// récupérer chatId et type de l'URL
-const urlParams=new URLSearchParams(window.location.search);
-chatId=urlParams.get("id");
-chatType=urlParams.get("type"); // private / group
-
-onAuthStateChanged(auth,user=>{
-if(!user){window.location.replace("login.html"); return;}
-currentUid=user.uid;
-
-// ==================== LISTENER MESSAGES ====================
-const dbRef=ref(auth.app, "/");
-const chatRef=chatType==="private"?ref(auth.app.database,`privateChats/${chatId}`):ref(auth.app.database,`groups/${chatId}/messages`);
-
-chatTitle.textContent=chatType==="private"?"Chat privé":"Groupe";
-
-onValue(chatRef,snap=>{
-const msgs=snap.val()||{};
-chatArea.innerHTML="";
-Object.values(msgs).forEach(msg=>{
-const div=document.createElement("div");
-div.className="message "+(msg.sender===currentUid?"mine":"other");
-div.innerHTML=`${msg.sender===currentUid?"":`<img src="${randomAvatar(msg.sender)}">`}<span>${msg.senderName||"Autre"}: ${msg.text}</span>`;
-chatArea.appendChild(div);
-});
-chatArea.scrollTop=chatArea.scrollHeight;
-});
-
-// ==================== SEND MESSAGE ====================
-sendBtn.addEventListener("click",()=>{sendCurrentMessage();});
-msgInput.addEventListener("keypress",e=>{if(e.key==="Enter") sendCurrentMessage();});
-
-function sendCurrentMessage(){
-const text=msgInput.value.trim();
-if(!text) return;
-sendMessage(chatId,chatType,text);
-msgInput.value="";
-}
-
-});
+<button id="backUsers">Retour liste utilisateurs</button>
+<script>
+checkAuth();
+const params = new URLSearchParams(window.location.search);
+const chatWithUid = params.get("uid");
+loadChat(chatWithUid);
+document.getElementById("backUsers").onclick = ()=>window.location.href="users.html";
 </script>
 </body>
 </html>
