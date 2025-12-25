@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Register - Messenger</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="/style.css">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1877f2">
-<script type="module" src="app.js"></script>
+<script type="module" src="/app.js"></script>
 </head>
 <body>
 <div class="container">
@@ -15,7 +15,7 @@
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Mot de passe">
   <button id="btnRegister">S'inscrire</button>
-  <p style="text-align:center;">Déjà inscrit ? <a href="index.html">Se connecter</a></p>
+  <p style="text-align:center;">Déjà inscrit ? <a href="/index.html">Se connecter</a></p>
 </div>
 <script type="module">
 import { registerUser } from './app.js';
@@ -24,7 +24,7 @@ document.getElementById("btnRegister").onclick = async ()=>{
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   if(!username||!email||!password){ alert("Remplissez tous les champs"); return; }
-  try { await registerUser(username,email,password); window.location.href="users.html"; }
+  try { await registerUser(username,email,password); window.location.href="/users.html"; }
   catch(e){ alert(e.message); }
 };
 </script>
